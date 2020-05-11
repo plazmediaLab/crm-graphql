@@ -1,0 +1,19 @@
+{
+  "name": "CRMGraphQL",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node .",
+    "dev": "nodemon ."
+  },
+  "keywords": [],
+  "author": "Adrian Nieves Urive <adriangd.1337@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "apollo-server": "^2.13.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.3"
+  }
+}
