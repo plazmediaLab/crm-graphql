@@ -4,6 +4,9 @@ const courses  = require('./db');
 const resolvers = {
   Query: {
     getCourse: () => 'Some thing...'
+  },
+  Mutation: {
+    newUser: () => 'Creating new user...'
   }
 }
 
