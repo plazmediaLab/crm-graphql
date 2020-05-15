@@ -11,7 +11,9 @@
   "author": "Adrian Nieves Urive <adriangd.1337@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "apollo-server": "^2.13.1"
+    "apollo-server": "^2.13.1",
+    "dotenv": "^8.2.0",
+    "mongoose": "^5.9.14"
   },
   "devDependencies": {
     "nodemon": "^2.0.3"
