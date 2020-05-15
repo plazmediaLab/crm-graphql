@@ -6,7 +6,11 @@ const resolvers = {
     getCourse: () => 'Some thing...'
   },
   Mutation: {
-    newUser: () => 'Creating new user...'
+    newUser: (_, { input }) => {
+      console.log(input);
+      
+      return 'Creating new user...';
+    }
   }
 }
 
