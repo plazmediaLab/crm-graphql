@@ -5,11 +5,9 @@ require('dotenv').config({path: 'variables.env'});
 const jwt = require('jsonwebtoken');
 
 const createToken = (user, key_word, expiresIn) => {
-  console.log(user);
   const { id, name, lastname, email } = user;
 
   return jwt.sign( { id, name, lastname, email }, key_word, { expiresIn } );
-  // TODO · Verificar getUser 05/15/2020 
 };
 
 // Resolvers
@@ -63,7 +61,7 @@ const resolvers = {
 
       // Crear el token
       return {
-        token: createToken(userExist, process.env.KEY_WORD, '24')
+        token: createToken(userExist, process.env.KEY_WORD, '24h')
       }
     }
   }
