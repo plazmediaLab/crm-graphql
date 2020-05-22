@@ -5,6 +5,7 @@ const typeDefs = gql`
   # Designamos la estructura y tipo de datos que contiene cada type User
   # Estos tipos de datos son los que retornara nuestra Mutación [newUser]
   # El id lo asignara MongoDB y el password no es asignado, ya que no queremos que lo devuelva GraphQL
+  # Custom types   
   type User {
     id: ID
     name: String
@@ -15,7 +16,15 @@ const typeDefs = gql`
   type Token {
     token: String
   }
+  type Product {
+    id: ID
+    name: String
+    exist: Int
+    price: Float
+    created: String
+  }
 
+  # Inputs
   input UserInput {
     name: String!
     lastname: String!
@@ -26,14 +35,27 @@ const typeDefs = gql`
     email: String!
     password: String!
   }
+  input ProductInput {
+    name: String!
+    exist: Int!
+    price: Float!
+  }
   
+  # Querys
   type Query{
     getUser(token: String): User 
+    getProducts: [Product] 
+    getProduct(input: ID): Product 
   }
 
+  # Mutations
   type Mutation {
+    # Users
     newUser(input: UserInput): User
     authUser(input: AuthInput): Token
+    
+    # Products
+    newProduct(input: ProductInput): Product
   }
 `;
 

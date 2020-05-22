@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const Product = require('../models/product');
 const bcryptjs = require('bcryptjs');
 // Inportar dotenv y acceder a su metodo [config], ubicación del erchivo .env
 require('dotenv').config({path: 'variables.env'});
@@ -17,6 +18,19 @@ const resolvers = {
       const userID = await jwt.verify(token, process.env.KEY_WORD);
 
       return userID;
+    },
+    getProducts: async (_,) => {
+
+      return await Product.find()
+
+    },
+    getProduct: async (_,{ input }) => {
+
+      const id = input;
+      const productExist = await Product.findById(id);
+
+      return productExist;
+
     }
   },
   Mutation: {
@@ -62,6 +76,19 @@ const resolvers = {
       // Crear el token
       return {
         token: createToken(userExist, process.env.KEY_WORD, '24h')
+      }
+    },
+    newProduct: async (_, { input }) => {
+      try {
+
+        const product = Product(input);
+        // Almacenar an la DB
+        const result = await product.save();
+
+        return result;
+
+      } catch (error) {
+        console.log(error);
       }
     }
   }
