@@ -1,5 +1,6 @@
 const User = require('../models/user');
 const Product = require('../models/product');
+const Client = require('../models/client');
 const bcryptjs = require('bcryptjs');
 // Inportar dotenv y acceder a su metodo [config], ubicación del erchivo .env
 require('dotenv').config({path: 'variables.env'});
@@ -112,6 +113,30 @@ const resolvers = {
       await Product.findOneAndDelete({_id: id });
 
       return 'The product was removed';
+    },
+    newClient: async (_, { input }) => {
+      const { email } = input;
+      // Verificar que el cliente ya este regitrado
+      const client = await Client.findOne({email: email})
+      if(client){
+        throw new Error('The customer is already served by another seller');
+      }
+
+      // Nueva instancia de Client
+      const newClient = new Client(input);
+
+      // Asignar el vendedor
+      newClient.seller = "5ebf27cd9b83393b300e2e16";
+
+      try {
+        // Guardarlo en la DB
+        const result = await newClient.save();
+        return result;
+      } catch (error) {
+        console.log(error);
+      }
+
+      console.log(input);
     }
   }
 }
