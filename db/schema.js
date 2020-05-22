@@ -43,9 +43,11 @@ const typeDefs = gql`
   
   # Querys
   type Query{
+    # Users
     getUser(token: String): User 
+    # Products
     getProducts: [Product] 
-    getProduct(input: ID): Product 
+    getProduct(id: ID!): Product 
   }
 
   # Mutations
@@ -56,6 +58,8 @@ const typeDefs = gql`
     
     # Products
     newProduct(input: ProductInput): Product
+    updateProduct(id: ID!, input: ProductInput): Product
+    deletProduct(id: ID!): String
   }
 `;
 

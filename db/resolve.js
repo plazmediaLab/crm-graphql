@@ -19,17 +19,19 @@ const resolvers = {
 
       return userID;
     },
-    getProducts: async (_,) => {
+    getProducts: async () => {
 
       return await Product.find()
 
     },
-    getProduct: async (_,{ input }) => {
+    getProduct: async (_,{ id }) => {
 
-      const id = input;
-      const productExist = await Product.findById(id);
+      const product = await Product.findById(id);
+      if(!product){
+        throw new Error('Product not found');
+      } 
 
-      return productExist;
+      return product;
 
     }
   },
@@ -90,6 +92,26 @@ const resolvers = {
       } catch (error) {
         console.log(error);
       }
+    },
+    updateProduct: async (_, { id, input }) => {
+      let product = await Product.findById(id);
+      if(!product){
+        throw new Error('Product not found');
+      }
+      
+      product = await Product.findOneAndUpdate({_id: id}, input, { new: true });
+
+      return product;
+    },
+    deletProduct: async (_, { id }) => {
+      let product = await Product.findById(id);
+      if(!product){
+        throw new Error('Product not found');
+      }
+
+      await Product.findOneAndDelete({_id: id });
+
+      return 'The product was removed';
     }
   }
 }
