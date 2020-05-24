@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const Product = require('../models/product');
 const Client = require('../models/client');
+const Order = require('../models/order');
 const bcryptjs = require('bcryptjs');
 // Inportar dotenv y acceder a su metodo [config], ubicación del erchivo .env
 require('dotenv').config({path: 'variables.env'});
@@ -174,8 +175,6 @@ const resolvers = {
       } catch (error) {
         console.log(error);
       }
-
-      console.log(input);
     },
     updateClient: async (_, { id, input }, ctx) => {
       // Revisar si el cliente existe
@@ -212,6 +211,50 @@ const resolvers = {
       await Client.findOneAndDelete({_id: id });
 
       return 'The client was removed';
+    },
+    newOrder: async (_, { input }, ctx) => {
+
+      const { order, client } = input;
+
+      // Verificar si el cliente existe
+      let clientExist = await Client.findById(client);
+      
+      if(!clientExist){
+        throw new Error('Client not found');
+      }
+      
+      // Verificar si el cliente es del vendedor 
+      if(clientExist.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+      
+      // Revisar que el stock del producto este disponible
+      order.map(async item => {
+        // Verificar que el producto exixta
+        const { id, quantity } = item;
+        const productitem = await Product.findById(id);
+        if(!productitem){
+          throw new Error('Product not found');
+        }
+        if(quantity > productitem.exist){
+          throw new Error('There is not enough stock to fulfill the order');
+        };
+      });
+
+      // Nueva instancia de Client
+      const newOrder = new Order(input);
+
+      // Asignar el vendedor
+      newOrder.seller = ctx.id;
+
+      // Guardarlo en la DB
+      try {
+        // Guardarlo en la DB
+        const result = await newOrder.save();
+        return result;
+      } catch (error) {
+        console.log(error);
+      }
     }
   }
 }

@@ -32,6 +32,19 @@ const typeDefs = gql`
     phone: String
     seller: ID
   }
+  type Order {
+    id: ID
+    order: [OrderGroup]
+    total: Float
+    client: ID
+    seller: ID
+    created: String
+    state: StateOrder
+  }
+  type OrderGroup {
+    id: ID
+    quantity: Int
+  }
 
   # Inputs
   input UserInput {
@@ -55,6 +68,22 @@ const typeDefs = gql`
     company: String!
     email: String!
     phone: String
+  }
+  input OrderProductInput{
+    id: ID
+    quantity: Int
+  }
+  input OrderInput{
+    order: [OrderProductInput]
+    total: Float!
+    client: ID!
+    state: StateOrder
+  }
+
+  enum StateOrder{
+    PENDING
+    COMPLETED
+    CANCELED
   }
   
   # Querys
@@ -85,6 +114,9 @@ const typeDefs = gql`
     newClient(input: ClientInput): Client
     updateClient(id: ID!, input: ClientInput): Client
     deletClient(id: ID!): String 
+
+    # Orders
+    newOrder(input: OrderInput): Order 
   }
 `;
 
