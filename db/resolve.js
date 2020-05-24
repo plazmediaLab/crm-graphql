@@ -34,6 +34,42 @@ const resolvers = {
 
       return product;
 
+    },
+    getClients: async () => {
+
+      try {
+        
+        return await Client.find({});
+
+      } catch (error) {
+        console.log(error);
+      }
+
+    },
+    getSellerClients: async (_, { }, ctx) => {
+      
+      try {
+
+        return await Client.find({seller: ctx.id.toString()});
+        
+      } catch (error) {
+        console.log(error);
+      }
+      
+    },
+    getSellerClient: async (_, { id }, ctx) => {
+      // Revisar si el cliente existe
+      const client = await Client.findById(id);
+      if(!client){
+        throw new Error('Client not found');
+      }
+      
+      // Validar que el cliente pertenezca al vendedor 
+      if(client.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+
+      return client;
     }
   },
   Mutation: {
@@ -105,6 +141,7 @@ const resolvers = {
       return product;
     },
     deletProduct: async (_, { id }) => {
+      console.log(id);
       let product = await Product.findById(id);
       if(!product){
         throw new Error('Product not found');
@@ -114,19 +151,21 @@ const resolvers = {
 
       return 'The product was removed';
     },
-    newClient: async (_, { input }) => {
+    // (ctx) -> Es el contexto que vamos a extraer de los Headers para asignar el ID
+    // que viene encapsulado dentro del token de autenticación
+    newClient: async (_, { input }, ctx) => {
       const { email } = input;
       // Verificar que el cliente ya este regitrado
       const client = await Client.findOne({email: email})
       if(client){
-        throw new Error('The customer is already served by another seller');
+        throw new Error('This client is already exist');
       }
 
       // Nueva instancia de Client
       const newClient = new Client(input);
 
       // Asignar el vendedor
-      newClient.seller = "5ebf27cd9b83393b300e2e16";
+      newClient.seller = ctx.id;
 
       try {
         // Guardarlo en la DB
@@ -137,6 +176,42 @@ const resolvers = {
       }
 
       console.log(input);
+    },
+    updateClient: async (_, { id, input }, ctx) => {
+      // Revisar si el cliente existe
+      let client = await Client.findById(id);
+      
+      if(!client){
+        throw new Error('Client not found');
+      }
+
+      // Validar que el cliente pertenezca al vendedor 
+      if(client.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+
+      // Actualizar cliente
+      client = await Client.findOneAndUpdate({_id: id}, input, { new: true });
+
+      return client;
+    },
+    deletClient: async (_, { id }, ctx) => {
+      console.log(id);
+      // Revisar si el cliente existe
+      let client = await Client.findById(id.toString());
+      console.log(client);
+      if(!client){
+        throw new Error('Client not found');
+      }
+
+      // Validar que el cliente pertenezca al vendedor 
+      if(client.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+      // Eliminar Cliente
+      await Client.findOneAndDelete({_id: id });
+
+      return 'The client was removed';
     }
   }
 }

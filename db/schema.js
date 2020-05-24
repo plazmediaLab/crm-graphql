@@ -64,6 +64,10 @@ const typeDefs = gql`
     # Products
     getProducts: [Product] 
     getProduct(id: ID!): Product 
+    # Clients
+    getClients: [Client]
+    getSellerClients: [Client]
+    getSellerClient(id: ID!): Client
   }
 
   # Mutations
@@ -78,7 +82,9 @@ const typeDefs = gql`
     deletProduct(id: ID!): String
 
     # Clients
-    newClient(input: ClientInput): Client 
+    newClient(input: ClientInput): Client
+    updateClient(id: ID!, input: ClientInput): Client
+    deletClient(id: ID!): String 
   }
 `;
 

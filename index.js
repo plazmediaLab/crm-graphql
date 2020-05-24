@@ -4,13 +4,33 @@ const typeDefs = require('./db/schema');
 
 const connectDB = require('./config/db');
 
+require('dotenv').config({path: 'variables.env'});
+const jwt = require('jsonwebtoken');
+
 // Conectar a la Base de Datos
 connectDB();
 
 // Server
 const server = new ApolloServer({
   typeDefs,
-  resolvers
+  resolvers,
+  context: ({ req }) => {
+    // console.log(req.headers['authorization']);
+    // El context se pasa a todos los resolver a traves de los [Headers]
+    // de la petición, en este caso nombrado ['authorization']
+    const token = req.headers['authorization'] || '';
+    if(token){
+      try {
+        
+        const user = jwt.verify(token, process.env.KEY_WORD); 
+        return user;
+
+      } catch (error) {
+        console.log('There was a mistake');
+        console.log(error);
+      }
+    }
+  }
 });
 
 // Run server
