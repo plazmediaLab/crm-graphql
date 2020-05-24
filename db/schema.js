@@ -97,6 +97,11 @@ const typeDefs = gql`
     getClients: [Client]
     getSellerClients: [Client]
     getSellerClient(id: ID!): Client
+    # Orders
+    getOrders: [Order]
+    getOrder(id: ID!): Order
+    getSellerOrders: [Order]
+    getSellerOrder(id: ID!): Order
   }
 
   # Mutations
@@ -116,7 +121,7 @@ const typeDefs = gql`
     deletClient(id: ID!): String 
 
     # Orders
-    newOrder(input: OrderInput): Order 
+    newOrder(input: OrderInput): Order  
   }
 `;
 

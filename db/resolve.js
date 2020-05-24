@@ -71,6 +71,48 @@ const resolvers = {
       }
 
       return client;
+    },
+    getOrders: async () => {
+      try {
+
+        return await Order.find({});
+        
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    getOrder: async (_, { id }) => {
+      // Comprobar que la orden exista
+      const order = await Order.findById(id);
+      if(!order){
+        throw new Error('Order not found');
+      } 
+
+      return order;
+    },
+    getSellerOrders: async (_, { }, ctx) => {
+
+      const orders = await Order.find({});
+
+      // Filtrar resultados solamente del usuario (vendedor) logeado
+      const result = orders.filter(orderItem => orderItem.seller.toString() === ctx.id);
+      
+      return result;
+
+    },
+    getSellerOrder: async (_, { id }, ctx) => {
+      // Revisar si la orden existe
+      const orderExist = await Order.findById(id);
+      if(!orderExist){
+        throw new Error('Order not found');
+      }
+      
+      // Validar que el cliente pertenezca al vendedor 
+      if(orderExist.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+
+      return orderExist;
     }
   },
   Mutation: {
