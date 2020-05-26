@@ -21,6 +21,7 @@ const resolvers = {
 
       return userID;
     },
+    // PRODUCTS
     getProducts: async () => {
 
       return await Product.find()
@@ -36,6 +37,7 @@ const resolvers = {
       return product;
 
     },
+    // CLIENTS
     getClients: async () => {
 
       try {
@@ -72,6 +74,7 @@ const resolvers = {
 
       return client;
     },
+    // ORDERS
     getOrders: async () => {
       try {
 
@@ -92,13 +95,17 @@ const resolvers = {
     },
     getSellerOrders: async (_, { }, ctx) => {
 
-      const orders = await Order.find({});
-
-      // Filtrar resultados solamente del usuario (vendedor) logeado
-      const result = orders.filter(orderItem => orderItem.seller.toString() === ctx.id);
-      
-      return result;
-
+      try{
+        const orders = await Order.find({seller: ctx.id});
+  
+        // Filtrar resultados solamente del usuario (vendedor) logeado
+        // const result = orders.filter(orderItem => orderItem.seller.toString() === ctx.id);
+        
+        return orders;
+        
+      }catch(error){
+        console.log(error)
+      }
     },
     getSellerOrder: async (_, { id }, ctx) => {
       // Revisar si la orden existe
@@ -107,15 +114,25 @@ const resolvers = {
         throw new Error('Order not found');
       }
       
-      // Validar que el cliente pertenezca al vendedor 
+      // Validar que la orden del cliente pertenesca al vendedor 
       if(orderExist.seller.toString() !== ctx.id){
         throw new Error("You don't have the credentials for this client");
       }
 
       return orderExist;
+    },
+    getStatusOrders: async (_, { state }, ctx) => {
+      try {
+
+        return await Order.find({state: state, seller: ctx.id});
+        
+      } catch (error) {
+        console.log(error);
+      }
     }
   },
   Mutation: {
+    // USERS
     newUser: async (_, { input }) => {
 
       const { email, password } = input;
@@ -160,6 +177,7 @@ const resolvers = {
         token: createToken(userExist, process.env.KEY_WORD, '24h')
       }
     },
+    // PRODUCTS
     newProduct: async (_, { input }) => {
       try {
 
@@ -183,7 +201,7 @@ const resolvers = {
 
       return product;
     },
-    deletProduct: async (_, { id }) => {
+    deleteProduct: async (_, { id }) => {
       console.log(id);
       let product = await Product.findById(id);
       if(!product){
@@ -194,6 +212,7 @@ const resolvers = {
 
       return 'The product was removed';
     },
+    // CLIENTS
     // (ctx) -> Es el contexto que vamos a extraer de los Headers para asignar el ID
     // que viene encapsulado dentro del token de autenticación
     newClient: async (_, { input }, ctx) => {
@@ -236,7 +255,7 @@ const resolvers = {
 
       return client;
     },
-    deletClient: async (_, { id }, ctx) => {
+    deleteClient: async (_, { id }, ctx) => {
       console.log(id);
       // Revisar si el cliente existe
       let client = await Client.findById(id.toString());
@@ -254,6 +273,7 @@ const resolvers = {
 
       return 'The client was removed';
     },
+    // ORDERS
     newOrder: async (_, { input }, ctx) => {
 
       const { order, client } = input;
@@ -271,17 +291,21 @@ const resolvers = {
       }
       
       // Revisar que el stock del producto este disponible
-      order.map(async item => {
-        // Verificar que el producto exixta
-        const { id, quantity } = item;
+      // Operador asincrono para iteraciones de Nodeç
+      for await ( const orderItem of order ){
+        const { id, quantity } = orderItem;
         const productitem = await Product.findById(id);
         if(!productitem){
           throw new Error('Product not found');
         }
         if(quantity > productitem.exist){
           throw new Error('There is not enough stock to fulfill the order');
+        }else{
+          productitem.exist = productitem.exist - quantity;
+
+          await productitem.save();        
         };
-      });
+      }
 
       // Nueva instancia de Client
       const newOrder = new Order(input);
@@ -297,6 +321,67 @@ const resolvers = {
       } catch (error) {
         console.log(error);
       }
+    },
+    updateOrder: async (_, { id, input }, ctx) => {
+
+      const { order } = input;
+
+      // Revisar si la orden existe
+      let orderExist = await Order.findById(id);
+      if(!orderExist){
+        throw new Error('Order not found');
+      }
+      
+      // Revisar que el cliente existe
+      let clientExist = await Client.findById(input.client);
+      if(!clientExist){
+        throw new Error('Client not found');
+      }
+
+      
+      // Validar que la orden del cliente pertenesca al vendedor 
+      if(orderExist.seller.toString() !== ctx.id){
+        throw new Error("You don't have the credentials for this client");
+      }
+
+      // revisar el Stock
+      for await ( const orderItem of order ){
+        const { id, quantity } = orderItem;
+        const productitem = await Product.findById(id);
+        if(!productitem){
+          throw new Error('Product not found');
+        }
+        const { name } = productitem;
+        if(quantity > productitem.exist){
+          throw new Error(`There is not enough stock to fulfill the order of the product: ${name}`);
+        }else{
+          productitem.exist = productitem.exist - quantity;
+
+          await productitem.save();        
+        };
+      }
+      
+      // Actualizar Order
+      orderExist = await Order.findOneAndUpdate({_id: id}, input, { new: true });
+
+      return orderExist;
+    },
+    deleteOrder: async (_, { id }, ctx) => {
+
+      // Revisar si la orden existe
+      let orderExist = await Order.findById(id);
+      if(!orderExist){
+        throw new Error('Order not found');
+      }
+
+      // Validar que la orden del cliente pertenesca al vendedor 
+      if(orderExist.seller.toString() !== ctx.id){
+        throw new Error("You do not have the credentials to delete the order from this customer.");
+      }
+
+      await Order.findByIdAndDelete(id);
+
+      return 'The order was deletd successfully'
     }
   }
 }
