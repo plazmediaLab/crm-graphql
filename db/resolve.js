@@ -129,6 +129,45 @@ const resolvers = {
       } catch (error) {
         console.log(error);
       }
+    },
+    // ADVANCED
+    getBestClients: async () => {
+      // [aggregate] -> Realiza multiples operaciones y devuelve un valor
+      const clients = await Order.aggregate([
+        // Filtra elementos. Se puede usar tanto antes de la agregación (sería el where de SQL) como después (sería el having).
+        { $match: { state: "COMPLETED" } },
+        // En base a los resultados, separar por ID de cliente y sumar
+        // el total de sus ventas
+        { $group: {
+          // Es el modelo, pero en minusculas
+          // De este modelo obtenemos los ID para separar por cliente
+            _id: "$client",
+          // Dato a sumar de los resultados
+            total: { $sum: "$total" }
+        } },
+        {
+          // únir a varias colecciones [join]
+          $lookup: {
+            // colección para unirse
+            from: 'clients',
+            // campo de los documentos de entrada
+            localField: '_id',
+            // campo de los documentos de la colección "de"
+            foreignField: "_id",
+            // campo de matriz de salida
+            as: "client"
+          }
+        },
+        {
+          $sort: { total: -1 }
+        }
+      ]);
+
+      for await (item of clients) {
+        console.log(item);
+      }
+
+      return clients
     }
   },
   Mutation: {

@@ -45,6 +45,10 @@ const typeDefs = gql`
     id: ID
     quantity: Int
   }
+  type TopClient {
+    total: Float
+    client: [Client]
+  }
 
   # Inputs
   input UserInput {
@@ -85,7 +89,7 @@ const typeDefs = gql`
     COMPLETED
     CANCELED
   }
-  
+
   # Querys
   type Query{
     # Users
@@ -103,6 +107,8 @@ const typeDefs = gql`
     getSellerOrders: [Order]
     getSellerOrder(id: ID!): Order
     getStatusOrders(state: String): [Order]
+    # Advanced Search
+    getBestClients: [TopClient]
   }
 
   # Mutations
