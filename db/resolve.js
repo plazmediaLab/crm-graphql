@@ -163,11 +163,37 @@ const resolvers = {
         }
       ]);
 
-      for await (item of clients) {
-        console.log(item);
-      }
-
       return clients
+    },
+    getBestSeller: async () => {
+      const sellers = await Order.aggregate([
+        { $match: { state: "COMPLETED" } },
+        { $group: {
+          _id: '$seller',
+          total: { $sum: '$total' }
+        } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'seller'
+          }
+        },
+        {
+          $limit: 3
+        },
+        {
+          $sort: { total: -1 }
+        }
+      ])
+
+      return sellers;
+    },
+    serchProduct: async (_, { text }) => {
+      const products = await Product.find({ $text: { $search: text } }).limit(10);
+
+      return products;
     }
   },
   Mutation: {

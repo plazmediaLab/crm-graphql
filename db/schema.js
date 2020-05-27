@@ -49,6 +49,10 @@ const typeDefs = gql`
     total: Float
     client: [Client]
   }
+  type TopSeller {
+    total: Float
+    seller: [User]
+  }
 
   # Inputs
   input UserInput {
@@ -109,6 +113,10 @@ const typeDefs = gql`
     getStatusOrders(state: String): [Order]
     # Advanced Search
     getBestClients: [TopClient]
+    getBestSeller: [TopSeller]
+
+    # Shearch
+    serchProduct(text: String): [Product]
   }
 
   # Mutations
