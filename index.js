@@ -15,14 +15,19 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: ({ req }) => {
-    // console.log(req.headers['authorization']);
+
+    // console.log(req.headers.authorization); 
+    // console.log(req.headers.plazmedia_process);
+
     // El context se pasa a todos los resolver a traves de los [Headers]
     // de la petición, en este caso nombrado ['authorization']
     const token = req.headers['authorization'] || '';
     if(token){
       try {
         
-        const user = jwt.verify(token, process.env.KEY_WORD); 
+        const user = jwt.verify(token.replace('Bearer ', ''), process.env.KEY_WORD); 
+        // console.log(user);
+        
         return user;
 
       } catch (error) {
@@ -34,6 +39,6 @@ const server = new ApolloServer({
 });
 
 // Run server
-server.listen().then( ({ url }) => {
+server.listen({ port: process.env.PORT || 4000 }).then( ({ url }) => {
   console.log(`Server run on URL: ${url}`);
 } );

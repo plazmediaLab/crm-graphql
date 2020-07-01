@@ -1,4 +1,4 @@
-const User = require('../models/user');
+﻿const User = require('../models/user');
 const Product = require('../models/product');
 const Client = require('../models/client');
 const Order = require('../models/order');
@@ -16,10 +16,10 @@ const createToken = (user, key_word, expiresIn) => {
 // Resolvers
 const resolvers = {
   Query: {
-    getUser: async (_, { token }) => {
-      const userID = await jwt.verify(token, process.env.KEY_WORD);
+    getUser: async (_, {}, ctx) => {
 
-      return userID;
+      return ctx;
+
     },
     // PRODUCTS
     getProducts: async () => {
@@ -49,11 +49,14 @@ const resolvers = {
       }
 
     },
-    getSellerClients: async (_, { }, ctx) => {
+    getSellerClients: async (_, {}, ctx) => {
+      // console.log(ctx);
       
       try {
+        const clients = await Client.find({seller: ctx.id.toString()});
+        // console.log(clients);
 
-        return await Client.find({seller: ctx.id.toString()});
+        return clients;
         
       } catch (error) {
         console.log(error);
@@ -211,7 +214,7 @@ const resolvers = {
       // Hashear su password
       const salt = await bcryptjs.genSaltSync(10);
       input.password = await bcryptjs.hashSync(password, salt);
-      console.log(input.password);
+      // console.log(input.password);
 
       try {
         // Guardarlo en la base de datos
@@ -234,7 +237,7 @@ const resolvers = {
       // Revisar si el password es correcto
       const correctPass = bcryptjs.compareSync(password, userExist.password);
       if(!correctPass){
-        throw new Error('The password is correct');
+        throw new Error('The password is not correct');
       }
 
       // Crear el token
@@ -267,7 +270,7 @@ const resolvers = {
       return product;
     },
     deleteProduct: async (_, { id }) => {
-      console.log(id);
+      // console.log(id);
       let product = await Product.findById(id);
       if(!product){
         throw new Error('Product not found');
@@ -281,6 +284,7 @@ const resolvers = {
     // (ctx) -> Es el contexto que vamos a extraer de los Headers para asignar el ID
     // que viene encapsulado dentro del token de autenticación
     newClient: async (_, { input }, ctx) => {
+      // console.log(input);
       const { email } = input;
       // Verificar que el cliente ya este regitrado
       const client = await Client.findOne({email: email})
@@ -321,10 +325,10 @@ const resolvers = {
       return client;
     },
     deleteClient: async (_, { id }, ctx) => {
-      console.log(id);
+      // console.log(id);
       // Revisar si el cliente existe
       let client = await Client.findById(id.toString());
-      console.log(client);
+      
       if(!client){
         throw new Error('Client not found');
       }
@@ -364,7 +368,7 @@ const resolvers = {
           throw new Error('Product not found');
         }
         if(quantity > productitem.exist){
-          throw new Error('There is not enough stock to fulfill the order');
+          throw new Error(`PRODUCT: ${productitem.name} - There is not enough stock to fulfill the order`);
         }else{
           productitem.exist = productitem.exist - quantity;
 
